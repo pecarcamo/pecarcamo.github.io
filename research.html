@@ -85,6 +85,17 @@
       <div class="research-featured-grid">
         <!-- Featured Item: Full Width -->
         <div class="interest-featured">
+          <!-- Easter Egg Bird -->
+          <div class="hidden-bird" id="hiddenBird">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-forest-mid);">
+              <path d="M16 7h.01"/>
+              <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/>
+              <path d="m20 7 2 .5-2 .5"/>
+              <path d="M10 18v3"/>
+              <path d="M14 17.75V21"/>
+              <path d="M7 18a6 6 0 0 0 3.84-10.61"/>
+            </svg>
+          </div>
           <h3>Sustainability Transitions</h3>
           <p>
             How do societies shift toward more sustainable practices? I study the governance arrangements,
@@ -144,14 +155,6 @@
     </div>
   </footer>
 
-  <!-- Easter Egg Bird -->
-  <div class="hidden-bird" id="hiddenBird">
-    <svg viewBox="0 0 24 24" fill="currentColor" style="color: var(--color-forest-mid);">
-      <path
-        d="M16,13 C18.5,13 20.5,14.2 21.5,16 C21.5,16 20.5,17 19,17 C19,17 19,18 19,19 C19,20.1 18.1,21 17,21 C15.9,21 15,20.1 15,19 C15,18 15,17 15,17 L9,17 C9,17 9,18 9,19 C9,20.1 8.1,21 7,21 C5.9,21 5,20.1 5,19 C5,18 5,17 5,17 C3.5,17 2.5,16 2.5,16 C3.5,14.2 5.5,13 8,13 L8,11 C8,8.8 9.8,7 12,7 C14.2,7 16,8.8 16,11 L16,13 M12,9 C11.4,9 11,9.4 11,10 C11,10.6 11.4,11 12,11 C12.6,11 13,10.6 13,10 C13,9.4 12.6,9 12,9 M15,5 C15.6,5 16,4.6 16,4 C16,3.4 15.6,3 15,3 C14.4,3 14,3.4 14,4 C14,4.6 14.4,5 15,5 Z" />
-    </svg>
-  </div>
-
   <div class="bird-overlay" id="birdOverlay"></div>
   <div class="bird-popup" id="birdPopup">
     <button class="close-popup" id="closePopup">&times;</button>
@@ -170,25 +173,8 @@
     const overlay = document.getElementById('birdOverlay');
     const closeBtn = document.getElementById('closePopup');
 
-    // Make bird slightly visible after scroll or time
-    let birdRevealed = false;
-
-    window.addEventListener('scroll', () => {
-      if (!birdRevealed && window.scrollY > 200) {
-        bird.classList.add('visible');
-        birdRevealed = true;
-      }
-    });
-
-    setTimeout(() => {
-      if (!birdRevealed) {
-        bird.classList.add('visible');
-        birdRevealed = true;
-      }
-    }, 5000);
-
-    // Show popup on click
-    bird.addEventListener('click', () => {
+    // Show popup on hover
+    bird.addEventListener('mouseenter', () => {
       popup.classList.add('show');
       overlay.classList.add('show');
 
