@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Regional de Innovación · Coquimbo 2025</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --bg-deep: #ebe6db;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-muted: #8a8478;
+    --line: #d4cdbe;
+    --accent: #c84a1f;
+    --accent-soft: #e8a994;
+    /* Category colors */
+    --cat-gov: #2c5f7d;
+    --cat-know: #6b3410;
+    --cat-exec: #b88845;
+    --cat-prog: #4a7c59;
+    --cat-network: #8a3a5c;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  body {
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(200, 74, 31, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(44, 95, 125, 0.04) 0%, transparent 40%);
+  }
+
+  /* ===== Header ===== */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    padding: 18px 28px 14px;
+    background: linear-gradient(to bottom, rgba(244, 241, 234, 0.97) 70%, rgba(244, 241, 234, 0));
+    pointer-events: none;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .title-block { pointer-events: auto; }
+
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::after {
+    content: '';
+    flex: 0 0 60px;
+    height: 1px;
+    background: var(--line);
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(26px, 3vw, 36px);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 400;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+    max-width: 540px;
+    line-height: 1.5;
+  }
+
+  .meta {
+    pointer-events: auto;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+    line-height: 1.7;
+  }
+  .meta strong { color: var(--ink-soft); font-weight: 500; }
+
+  /* ===== Filter bar ===== */
+  .filter-bar {
+    position: fixed;
+    top: 132px;
+    left: 28px;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    pointer-events: auto;
+  }
+
+  .filter-group {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--line);
+    padding: 12px 14px;
+    border-radius: 2px;
+  }
+
+  .filter-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .pill {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pill:hover { border-color: var(--ink); color: var(--ink); }
+  .pill.active {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  .pill .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .search-box {
+    width: 220px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    outline: none;
+    border-radius: 2px;
+    transition: border-color 0.15s ease;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--ink-muted); font-style: italic; }
+
+  /* ===== Graph canvas ===== */
+  #graph {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    cursor: grab;
+  }
+  #graph:active { cursor: grabbing; }
+
+  .link {
+    stroke: var(--line);
+    stroke-opacity: 0.55;
+    fill: none;
+    transition: stroke 0.2s ease, stroke-opacity 0.2s ease;
+  }
+  .link.highlighted { stroke: var(--accent); stroke-opacity: 0.9; stroke-width: 1.5px; }
+  .link.dimmed { stroke-opacity: 0.08; }
+
+  .node-group { cursor: pointer; }
+  .node-circle {
+    stroke: var(--bg);
+    stroke-width: 2px;
+    transition: filter 0.2s ease, opacity 0.2s ease;
+  }
+  .node-group:hover .node-circle {
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.18));
+  }
+  .node-circle.dimmed { opacity: 0.18; }
+
+  .node-label {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    fill: var(--ink);
+    pointer-events: none;
+    paint-order: stroke;
+    stroke: var(--bg);
+    stroke-width: 3px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: opacity 0.2s ease;
+  }
+  .node-label.large {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .node-label.dimmed { opacity: 0.2; }
+
+  /* ===== Detail panel ===== */
+  .detail-panel {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 340px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    background: var(--bg);
+    border: 1px solid var(--ink);
+    z-index: 60;
+    transform: translateX(calc(100% + 32px));
+    transition: transform 0.35s cubic-bezier(0.65, 0, 0.35, 1);
+    box-shadow: -8px 12px 40px rgba(0,0,0,0.08);
+  }
+  .detail-panel.open { transform: translateX(0); }
+
+  .detail-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .detail-close {
+    position: absolute;
+    top: 14px; right: 14px;
+    width: 26px; height: 26px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--ink-muted);
+    font-size: 18px;
+    line-height: 1;
+    transition: color 0.15s ease;
+  }
+  .detail-close:hover { color: var(--ink); }
+
+  .detail-category {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .detail-category .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .detail-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .detail-acronym {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+  }
+
+  .detail-body { padding: 16px 20px 20px; }
+
+  .detail-body p {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+
+  .detail-meta-row {
+    display: flex;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+    margin-top: 4px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .detail-meta-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+    letter-spacing: 0.04em;
+  }
+  .detail-meta-item strong {
+    display: block;
+    color: var(--ink);
+    font-weight: 500;
+    font-size: 11px;
+    margin-bottom: 2px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .detail-link {
+    display: inline-block;
+    margin-top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 1px;
+  }
+  .detail-link:hover { color: var(--ink); border-color: var(--ink); }
+
+  .detail-connections {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .detail-connections-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .connection-chip {
+    display: inline-block;
+    margin: 3px 4px 3px 0;
+    padding: 3px 9px;
+    background: var(--bg-deep);
+    border: 1px solid var(--line);
+    font-size: 11px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 999px;
+    transition: all 0.15s ease;
+  }
+  .connection-chip:hover { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+
+  /* ===== Footer note ===== */
+  .footer-note {
+    position: fixed;
+    bottom: 16px; left: 28px;
+    z-index: 40;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--ink-muted);
+    letter-spacing: 0.1em;
+    max-width: 480px;
+    line-height: 1.6;
+  }
+  .footer-note span { color: var(--ink-soft); }
+
+  /* ===== Help hint ===== */
+  .help-hint {
+    position: fixed;
+    bottom: 16px; right: 24px;
+    z-index: 40;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--ink-muted);
+    letter-spacing: 0.08em;
+    text-align: right;
+    line-height: 1.7;
+  }
+  .help-hint kbd {
+    display: inline-block;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid var(--line);
+    padding: 1px 5px;
+    font-family: inherit;
+    font-size: 9px;
+    margin: 0 2px;
+  }
+
+  /* Scrollbar */
+  .detail-panel::-webkit-scrollbar { width: 6px; }
+  .detail-panel::-webkit-scrollbar-track { background: transparent; }
+  .detail-panel::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .filter-bar { top: auto; bottom: 80px; left: 12px; right: 12px; }
+    .search-box { width: 100%; }
+    .detail-panel { width: calc(100% - 24px); right: 12px; max-height: 60vh; }
+    .meta { display: none; }
+    .help-hint { display: none; }
+    .footer-note { display: none; }
+    header { padding: 14px 16px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <div class="title-block">
+      <div class="eyebrow">Sistema regional de innovación · Coquimbo</div>
+      <h1>Actores y programas del <em>ecosistema CTCI</em></h1>
+      <div class="subtitle">Actualización 2025 del mapa de organizaciones e iniciativas de innovación de la Región de Coquimbo. Arrastra los nodos, filtra por tipo o explora las conexiones.</div>
+    </div>
+    <div class="meta">
+      <div><strong>Nodos</strong> <span id="node-count">—</span></div>
+      <div><strong>Conexiones</strong> <span id="link-count">—</span></div>
+      <div><strong>Actualizado</strong> 2025·11</div>
+    </div>
+  </div>
+</header>
+
+<div class="filter-bar">
+  <input type="text" class="search-box" id="search" placeholder="Buscar organización…" autocomplete="off">
+
+  <div class="filter-group">
+    <div class="filter-label">Filtrar por tipo</div>
+    <div class="pill-row" id="type-filters"></div>
+  </div>
+
+  <div class="filter-group">
+    <div class="filter-label">Foco temático</div>
+    <div class="pill-row" id="theme-filters"></div>
+  </div>
+</div>
+
+<svg id="graph"></svg>
+
+<aside class="detail-panel" id="detail">
+  <div class="detail-header">
+    <button class="detail-close" id="detail-close" aria-label="Cerrar">✕</button>
+    <div class="detail-category">
+      <span class="dot" id="d-dot"></span>
+      <span id="d-cat"></span>
+    </div>
+    <div class="detail-title" id="d-title"></div>
+    <div class="detail-acronym" id="d-acronym"></div>
+  </div>
+  <div class="detail-body">
+    <p id="d-desc"></p>
+    <div class="detail-meta-row" id="d-meta"></div>
+    <a class="detail-link" id="d-link" href="#" target="_blank" rel="noopener" style="display:none;">Visitar sitio →</a>
+    <div class="detail-connections" id="d-connections-wrap" style="display:none;">
+      <div class="detail-connections-label">Conexiones</div>
+      <div id="d-connections"></div>
+    </div>
+  </div>
+</aside>
+
+<div class="footer-note">
+  Investigación de escritorio · Transiciones Consulting · Base: <span>elaboración propia a partir de listado de proyectos FIC, sitios institucionales y prensa regional</span>
+</div>
+
+<div class="help-hint">
+  <kbd>click</kbd> nodo para detalles ·
+  <kbd>arrastra</kbd> para mover ·
+  <kbd>scroll</kbd> para zoom
+</div>
+
+<script>
+// ============================================================
+// DATA: Coquimbo Innovation Ecosystem 2025
+// ============================================================
+
+const TYPES = {
+  gov:     { label: 'Gobernanza / Agencia', color: '#2c5f7d' },
+  know:    { label: 'Generación de conocimiento', color: '#6b3410' },
+  exec:    { label: 'Explotación / Empresa', color: '#b88845' },
+  prog:    { label: 'Programa / Iniciativa', color: '#4a7c59' },
+  network: { label: 'Red / Plataforma', color: '#8a3a5c' }
+};
+
+const THEMES = {
+  water: 'Recursos hídricos',
+  agri:  'Agricultura / Fruticultura',
+  mining: 'Minería',
+  tourism: 'Turismo',
+  marine: 'Marino / Pesca',
+  climate: 'Clima / Adaptación',
+  cross: 'Transversal / Multisectorial'
+};
+
+const nodes = [
+  // ===== GOVERNANCE & FUNDING (gov) =====
+  { id: 'gore',    name: 'Gobierno Regional de Coquimbo',                acronym: 'GORE',          type: 'gov',  theme: 'cross',
+    desc: 'Articulador estratégico del desarrollo regional. Financia ciencia, tecnología e innovación vía FIC-R y ahora opera como Comité de Desarrollo Productivo Regional.',
+    weight: 5, url: 'https://www.gorecoquimbo.cl' },
+  { id: 'corfo',   name: 'CORFO Coquimbo',                                acronym: 'CORFO',         type: 'gov',  theme: 'cross',
+    desc: 'Corporación de Fomento de la Producción, oficina regional. Desde 2024 en proceso de descentralización como Comité de Desarrollo Productivo Regional. Ejecuta los Programas Transforma (Hídrico, Fruticultura Sustentable, Turismo).',
+    weight: 5, url: 'https://www.corfo.cl' },
+  { id: 'anid',    name: 'Agencia Nacional de Investigación y Desarrollo', acronym: 'ANID',        type: 'gov',  theme: 'cross',
+    desc: 'Financia investigación científica nacional. Aporta a CEAZA como Centro Regional y al Nodo CIV-VAL como parte del programa de Nodos para la Aceleración del Impacto Territorial de la CTCI.',
+    weight: 4, url: 'https://www.anid.cl' },
+  { id: 'seremictci', name: 'SEREMI de CTCI Macrozona Centro',           acronym: 'SEREMI CTCI',   type: 'gov',  theme: 'cross',
+    desc: 'Secretaría Regional Ministerial de Ciencia, Tecnología, Conocimiento e Innovación. Coordina la macrozona centro (Coquimbo + Valparaíso) con sede compartida.',
+    weight: 3, url: '' },
+  { id: 'crdp',    name: 'Corporación Regional de Desarrollo Productivo', acronym: 'CRDP',         type: 'gov',  theme: 'cross',
+    desc: 'Brazo regional para la articulación pública-privada del desarrollo productivo. Co-financia La Brújula Incuba junto a CORFO y CODESSER.',
+    weight: 3, url: '' },
+  { id: 'crcc',    name: 'Comité Regional de Cambio Climático',           acronym: 'CRCC',          type: 'gov',  theme: 'climate',
+    desc: 'Instancia creada por la Ley Marco de Cambio Climático (2022) para coordinar acción climática a nivel regional. Plan de Acción Climática Regional en elaboración.',
+    weight: 2, url: '' },
+  { id: 'core',    name: 'Consejo Regional de Coquimbo',                  acronym: 'CORE',          type: 'gov',  theme: 'cross',
+    desc: 'Cuerpo colegiado que aprueba el presupuesto regional, incluyendo el FIC-R que financia gran parte de la innovación territorial.',
+    weight: 3, url: 'https://www.corecoquimbo.cl' },
+  { id: 'sercotec', name: 'SERCOTEC Coquimbo',                            acronym: 'SERCOTEC',      type: 'gov',  theme: 'cross',
+    desc: 'Servicio de Cooperación Técnica. Apoyo a micro y pequeñas empresas vía subsidios, capacitación y centros de negocios.',
+    weight: 2, url: 'https://www.sercotec.cl' },
+  { id: 'fia',     name: 'Fundación para la Innovación Agraria',          acronym: 'FIA',           type: 'gov',  theme: 'agri',
+    desc: 'Ministerio de Agricultura. Financia innovación agroalimentaria; programas AgroCoopInnova activos en la región.',
+    weight: 3, url: 'https://www.fia.cl' },
+  { id: 'sernapesca', name: 'Sernapesca',                                 acronym: 'SERNAPESCA',    type: 'gov',  theme: 'marine',
+    desc: 'Servicio Nacional de Pesca y Acuicultura. Implementación del programa GEF Gobernanza Marino Costera junto a FAO en sitios piloto regionales.',
+    weight: 2, url: '' },
+  { id: 'sernatur', name: 'Sernatur Coquimbo',                            acronym: 'SERNATUR',      type: 'gov',  theme: 'tourism',
+    desc: 'Servicio Nacional de Turismo. Articulación con Transforma Turismo Coquimbo en astroturismo, naturaleza y aventura.',
+    weight: 2, url: 'https://www.sernatur.cl' },
+  { id: 'indap',   name: 'INDAP',                                         acronym: 'INDAP',         type: 'gov',  theme: 'agri',
+    desc: 'Instituto de Desarrollo Agropecuario. Apoyo a la agricultura familiar campesina con foco en gestión hídrica y adaptación.',
+    weight: 2, url: '' },
+  { id: 'dga',     name: 'Dirección General de Aguas',                    acronym: 'DGA',           type: 'gov',  theme: 'water',
+    desc: 'Autoridad nacional del agua. Participa en gobernanza del Transforma Hídrico y normativas de monitoreo telemétrico.',
+    weight: 2, url: '' },
+
+  // ===== KNOWLEDGE GENERATION (know) =====
+  { id: 'uls',     name: 'Universidad de La Serena',                      acronym: 'ULS',           type: 'know', theme: 'cross',
+    desc: 'Universidad estatal regional. Alberga al laboratorio PROMMRA (recursos hídricos) y es co-fundadora de CEAZA. Líder en investigación aplicada al territorio.',
+    weight: 4, url: 'https://www.userena.cl' },
+  { id: 'ucn',     name: 'Universidad Católica del Norte (sede Coquimbo)', acronym: 'UCN',          type: 'know', theme: 'cross',
+    desc: 'Campus Guayacán. Fortalezas en ciencias del mar, minería e ingeniería. Co-fundadora de CEAZA junto a ULS e INIA.',
+    weight: 4, url: 'https://www.ucn.cl' },
+  { id: 'ceaza',   name: 'Centro de Estudios Avanzados en Zonas Áridas',  acronym: 'CEAZA',         type: 'know', theme: 'climate',
+    desc: 'Centro Regional ANID fundado en 2003. Investigación interdisciplinaria en oscilaciones climáticas, ciclo hidrológico y productividad en zonas áridas. Red CEAZA Met y proyecto CLIMA-L (Limarí).',
+    weight: 5, url: 'https://www.ceaza.cl' },
+  { id: 'inia',    name: 'INIA Intihuasi',                                acronym: 'INIA',          type: 'know', theme: 'agri',
+    desc: 'Instituto de Investigaciones Agropecuarias, centro regional. Investigación en gestión hídrica y cultivos para zonas semiáridas.',
+    weight: 3, url: 'https://www.inia.cl' },
+  { id: 'cazalac', name: 'Centro del Agua para Zonas Áridas (LAC)',       acronym: 'CAZALAC',       type: 'know', theme: 'water',
+    desc: 'Centro internacional vinculado a UNESCO. Investigación y formación en gestión del agua en zonas áridas y semiáridas de América Latina y el Caribe.',
+    weight: 3, url: 'http://www.cazalac.org' },
+  { id: 'prommra', name: 'Laboratorio PROMMRA (ULS)',                     acronym: 'PROMMRA',       type: 'know', theme: 'water',
+    desc: 'Programa de Monitoreo y Modelación de Recursos Agroclimáticos. Líder regional en plataformas tecnológicas para gestión hídrica (PRO-Q, APRoxima en Red, Observatorio SSR).',
+    weight: 3, url: '' },
+  { id: 'ucentral', name: 'Universidad Central (sede Coquimbo)',          acronym: 'U. Central',    type: 'know', theme: 'cross',
+    desc: 'Sede regional con foco en investigación aplicada al desarrollo territorial y la minería sostenible.',
+    weight: 2, url: '' },
+  { id: 'ust',     name: 'Universidad Santo Tomás',                       acronym: 'UST',           type: 'know', theme: 'agri',
+    desc: 'Centro de Innovación y Modelos de Negocio (CIMON). Ejecuta proyectos FIA con foco en cooperativas agroalimentarias (AgroCoopInnova).',
+    weight: 2, url: '' },
+  { id: 'inacap',  name: 'INACAP La Serena',                              acronym: 'INACAP',        type: 'know', theme: 'cross',
+    desc: 'Universidad Tecnológica. Formación técnica e iniciativas de innovación estudiantil con foco territorial (turismo, ambiental).',
+    weight: 2, url: '' },
+  { id: 'udechile', name: 'Universidad de Chile',                         acronym: 'U. de Chile',   type: 'know', theme: 'cross',
+    desc: 'Aporte vía proyectos colaborativos con centros regionales. Participación histórica en redes FIC y de investigación.',
+    weight: 2, url: '' },
+  { id: 'fchile',  name: 'Fundación Chile',                               acronym: 'F. Chile',      type: 'know', theme: 'cross',
+    desc: 'Aliada en proyectos de innovación tecnológica con foco productivo y sostenibilidad.',
+    weight: 2, url: '' },
+
+  // ===== PROGRAMS / INITIATIVES (prog) =====
+  { id: 'thidrico', name: 'PER Transforma Hídrico Coquimbo',              acronym: 'PER Hídrico',   type: 'prog', theme: 'water',
+    desc: 'Programa Estratégico Regional de CORFO (2024–). Hoja de ruta de ~$6.673 millones a 3 años para innovación, eficiencia y gobernanza hídrica. Meta: ahorro de 45,9 M m³ en 9 años.',
+    weight: 4, url: '' },
+  { id: 'tfruti',  name: 'PER Fruticultura Sustentable Coquimbo',         acronym: 'PER Frutícola', type: 'prog', theme: 'agri',
+    desc: 'Programa Estratégico Regional de CORFO co-financiado por GORE. Talleres provinciales en Elqui, Limarí y Choapa (oct 2025). Hoja de ruta para fruticultura sustentable con identidad territorial.',
+    weight: 4, url: '' },
+  { id: 'tturismo', name: 'PER Transforma Turismo: Astroturismo',         acronym: 'PER Turismo',   type: 'prog', theme: 'tourism',
+    desc: 'Programa CORFO + GORE. Posicionar la región como capital mundial del astroturismo. Guía de Diversificación Turística Costera frente al Cambio Climático (2025).',
+    weight: 3, url: '' },
+  { id: 'masmar',  name: 'PER MásMar',                                    acronym: 'MásMar',        type: 'prog', theme: 'marine',
+    desc: 'Programa Estratégico Regional CORFO para la pesca y maricultura. Proyectos de valorización del jurel y diversificación productiva costera (2025).',
+    weight: 3, url: '' },
+  { id: 'civval', name: 'Nodo CIV-VAL',                                   acronym: 'Nodo CIV-VAL',  type: 'prog', theme: 'cross',
+    desc: 'Nodo ANID para la aceleración del impacto territorial de la CTCI en la Macrozona Centro (Coquimbo + Valparaíso). 9 instituciones asociadas, lidera PUCV. Cuarta etapa adjudicada en 2026. Áreas: alimentos, biodiversidad, recursos hídricos, gobernanza territorial.',
+    weight: 5, url: 'https://nodociv-val.cl' },
+  { id: 'ficr',    name: 'Fondo de Innovación para la Competitividad Regional', acronym: 'FIC-R',  type: 'prog', theme: 'cross',
+    desc: 'Instrumento del GORE para financiar proyectos de innovación con impacto territorial. Aprobado por el CORE. Fuente principal de financiamiento para los centros regionales.',
+    weight: 3, url: '' },
+  { id: 'brujula', name: 'La Brújula Incuba',                             acronym: 'La Brújula',    type: 'prog', theme: 'cross',
+    desc: 'Incubadora regional apoyada por CORFO, CODESSER y CRDP (desde 2023). Más de 600 proyectos incubados, $1.000M apalancados. Línea Mujer Dinámica de preincubación femenina.',
+    weight: 3, url: '' },
+  { id: 'eleva',   name: 'Eleva tu Startup',                              acronym: 'Eleva',         type: 'prog', theme: 'cross',
+    desc: 'Programa CORFO Coquimbo (lanzado 2025). Acompañamiento a startups y pymes innovadoras para acceso a inversión privada tipo equity.',
+    weight: 2, url: 'https://eleva.investcoquimbo.cl' },
+  { id: 'quitai',  name: 'Consorcio Quitai Anko',                         acronym: 'Quitai Anko',   type: 'prog', theme: 'water',
+    desc: 'Centro Tecnológico del Agua. Consorcio ULS-PROMMRA + CEAZA + CAZALAC + Minera Los Pelambres. Plataformas tecnológicas para gestión hídrica regional.',
+    weight: 3, url: '' },
+  { id: 'aproxima', name: 'APRoxima en Red',                              acronym: 'APRoxima',      type: 'prog', theme: 'water',
+    desc: 'Programa de Minera Los Pelambres + PROMMRA + 4 municipios del Choapa + 74 Servicios Sanitarios Rurales. Telemetría y plataforma digital para gestión de agua potable rural.',
+    weight: 2, url: '' },
+  { id: 'climal',  name: 'Proyecto CLIMA-L',                              acronym: 'CLIMA-L',       type: 'prog', theme: 'water',
+    desc: 'Plataforma digital de acceso libre del CEAZA con información sobre el estado de los acuíferos de la cuenca del Limarí.',
+    weight: 2, url: '' },
+
+  // ===== KNOWLEDGE EXPLOITATION / BUSINESS (exec) =====
+  { id: 'cidere',  name: 'CIDERE Coquimbo',                               acronym: 'CIDERE',        type: 'exec', theme: 'cross',
+    desc: 'Corporación Industrial para el Desarrollo Regional. Gremio empresarial multisectorial, parte de la mesa macrozona norte junto a AIA, AII y CORPROA.',
+    weight: 3, url: '' },
+  { id: 'asoinco', name: 'ASOINCO',                                       acronym: 'ASOINCO',       type: 'exec', theme: 'cross',
+    desc: 'Asociación Gremial de Industriales de Coquimbo. Cerca de 80 empresas socias. Expo ASOINCO anual como vitrina sectorial.',
+    weight: 2, url: '' },
+  { id: 'san',     name: 'Sociedad Agrícola del Norte',                   acronym: 'SAN',           type: 'exec', theme: 'agri',
+    desc: 'Asociación gremial agrícola regional. Participa en gobernanza del PER Transforma Hídrico y del PER Fruticultura.',
+    weight: 2, url: '' },
+  { id: 'asoex',   name: 'ASOEX',                                         acronym: 'ASOEX',         type: 'exec', theme: 'agri',
+    desc: 'Asociación de Exportadores de Frutas de Chile. Participa en mesas regionales de fruticultura sustentable.',
+    weight: 2, url: 'https://www.asoex.cl' },
+  { id: 'capel',   name: 'Cooperativa Capel',                             acronym: 'Capel',         type: 'exec', theme: 'agri',
+    desc: 'Cooperativa pisquera líder. Iniciativas de economía circular en valorización de residuos de producción.',
+    weight: 2, url: '' },
+  { id: 'codesser', name: 'CODESSER',                                     acronym: 'CODESSER',      type: 'exec', theme: 'agri',
+    desc: 'Corporación de Desarrollo Social del Sector Rural. Co-ejecutor de La Brújula Incuba y operador de fondos para el sector agroalimentario.',
+    weight: 2, url: '' },
+  { id: 'pelambres', name: 'Minera Los Pelambres',                        acronym: 'M.L. Pelambres',type: 'exec', theme: 'mining',
+    desc: 'Operación minera (Antofagasta Minerals) en Choapa. Impulsa APRoxima en Red y participa en Consorcio Quitai Anko. Inversor privado clave en innovación hídrica territorial.',
+    weight: 3, url: '' },
+  { id: 'jvelqui', name: 'Junta de Vigilancia del Río Elqui',             acronym: 'JV Elqui',      type: 'exec', theme: 'water',
+    desc: 'Organización de usuarios del agua del valle del Elqui. Participa en gobernanza del PER Transforma Hídrico.',
+    weight: 2, url: '' },
+  { id: 'jvlimari', name: 'Junta de Vigilancia del Río Limarí',           acronym: 'JV Limarí',     type: 'exec', theme: 'water',
+    desc: 'Organización de usuarios del agua del valle del Limarí. Co-gobernanza hídrica regional.',
+    weight: 2, url: '' },
+  { id: 'kapteyn', name: 'Kapteyn',                                       acronym: 'Kapteyn',       type: 'exec', theme: 'cross',
+    desc: 'Startup egresada de La Brújula Incuba. Plataforma online de análisis de prefactibilidad ambiental para proyectos en el SEIA.',
+    weight: 1, url: '' },
+  { id: 'camtur',  name: 'Cámara de Turismo IV Región',                   acronym: 'Cámara Turismo',type: 'exec', theme: 'tourism',
+    desc: 'Gremio representativo del sector turismo regional. Articulación con PER Astroturismo y políticas de adaptación climática costera.',
+    weight: 2, url: '' },
+
+  // ===== NETWORKS / PLATFORMS (network) =====
+  { id: 'startupcoq', name: 'Startup Coquimbo',                           acronym: 'Startup Coq.',  type: 'network', theme: 'cross',
+    desc: 'Medio digital regional (2025–) dedicado a startups, emprendimiento e innovación. Visibiliza el ecosistema emprendedor de la Región de Coquimbo.',
+    weight: 2, url: 'https://startupcoquimbo.cl' },
+  { id: 'hub',     name: 'Hub Aceleración Startups (AgTech/GreenTech)',   acronym: 'Hub Tech',      type: 'network', theme: 'cross',
+    desc: 'Iniciativa emergente (2025) para posicionar a Coquimbo como hub regional de startups en AgTech, FinTech, GreenTech, MineTech y FoodTech.',
+    weight: 2, url: '' },
+  { id: 'gef',     name: 'GEF Gobernanza Marino Costera',                 acronym: 'GEF Costero',   type: 'network', theme: 'marine',
+    desc: 'Programa FAO/Ministerio del Medio Ambiente/Subpesca/Sernapesca. Sitio piloto norte en Coquimbo para adaptación climática y diversificación turística costera.',
+    weight: 2, url: '' }
+];
+
+// Connections (source → target)
+const links = [
+  // GORE / CORFO core
+  { source: 'gore', target: 'corfo' },
+  { source: 'gore', target: 'core' },
+  { source: 'gore', target: 'ficr' },
+  { source: 'gore', target: 'crdp' },
+  { source: 'gore', target: 'crcc' },
+  { source: 'gore', target: 'ceaza' },
+  { source: 'gore', target: 'fia' },
+  { source: 'gore', target: 'tfruti' },
+
+  // CORFO programs
+  { source: 'corfo', target: 'thidrico' },
+  { source: 'corfo', target: 'tfruti' },
+  { source: 'corfo', target: 'tturismo' },
+  { source: 'corfo', target: 'masmar' },
+  { source: 'corfo', target: 'brujula' },
+  { source: 'corfo', target: 'eleva' },
+  { source: 'corfo', target: 'crdp' },
+  { source: 'corfo', target: 'sercotec' },
+  { source: 'corfo', target: 'quitai' },
+
+  // ANID & CTCI
+  { source: 'anid', target: 'civval' },
+  { source: 'anid', target: 'ceaza' },
+  { source: 'anid', target: 'seremictci' },
+  { source: 'seremictci', target: 'civval' },
+  { source: 'seremictci', target: 'gore' },
+
+  // Universities ↔ CEAZA
+  { source: 'uls', target: 'ceaza' },
+  { source: 'ucn', target: 'ceaza' },
+  { source: 'inia', target: 'ceaza' },
+  { source: 'uls', target: 'prommra' },
+  { source: 'uls', target: 'civval' },
+  { source: 'ucn', target: 'civval' },
+  { source: 'ucentral', target: 'civval' },
+  { source: 'ust', target: 'fia' },
+  { source: 'ust', target: 'civval' },
+  { source: 'inacap', target: 'civval' },
+
+  // PER Hídrico
+  { source: 'thidrico', target: 'prommra' },
+  { source: 'thidrico', target: 'san' },
+  { source: 'thidrico', target: 'asoex' },
+  { source: 'thidrico', target: 'asoinco' },
+  { source: 'thidrico', target: 'ucn' },
+  { source: 'thidrico', target: 'jvelqui' },
+  { source: 'thidrico', target: 'jvlimari' },
+  { source: 'thidrico', target: 'inia' },
+  { source: 'thidrico', target: 'dga' },
+
+  // PER Fruticultura
+  { source: 'tfruti', target: 'san' },
+  { source: 'tfruti', target: 'asoex' },
+  { source: 'tfruti', target: 'capel' },
+  { source: 'tfruti', target: 'inia' },
+  { source: 'tfruti', target: 'codesser' },
+
+  // PER Turismo / Marino
+  { source: 'tturismo', target: 'sernatur' },
+  { source: 'tturismo', target: 'camtur' },
+  { source: 'tturismo', target: 'gef' },
+  { source: 'masmar', target: 'sernapesca' },
+  { source: 'masmar', target: 'ucn' },
+
+  // Water consortia
+  { source: 'quitai', target: 'prommra' },
+  { source: 'quitai', target: 'ceaza' },
+  { source: 'quitai', target: 'cazalac' },
+  { source: 'quitai', target: 'pelambres' },
+  { source: 'aproxima', target: 'prommra' },
+  { source: 'aproxima', target: 'pelambres' },
+  { source: 'climal', target: 'ceaza' },
+  { source: 'cazalac', target: 'civval' },
+
+  // Incubation
+  { source: 'brujula', target: 'codesser' },
+  { source: 'brujula', target: 'crdp' },
+  { source: 'brujula', target: 'kapteyn' },
+  { source: 'brujula', target: 'startupcoq' },
+  { source: 'eleva', target: 'brujula' },
+  { source: 'startupcoq', target: 'hub' },
+  { source: 'hub', target: 'corfo' },
+
+  // FIC-R financing
+  { source: 'ficr', target: 'prommra' },
+  { source: 'ficr', target: 'ceaza' },
+  { source: 'ficr', target: 'cazalac' },
+  { source: 'ficr', target: 'core' },
+
+  // Business associations
+  { source: 'cidere', target: 'asoinco' },
+  { source: 'cidere', target: 'corfo' },
+  { source: 'san', target: 'asoex' },
+
+  // GEF / Climate
+  { source: 'gef', target: 'sernapesca' },
+  { source: 'crcc', target: 'corfo' },
+  { source: 'crcc', target: 'ceaza' },
+
+  // INDAP
+  { source: 'indap', target: 'inia' },
+  { source: 'indap', target: 'tfruti' },
+
+  // FIA → universities
+  { source: 'fia', target: 'ust' }
+];
+
+// ============================================================
+// RENDER
+// ============================================================
+
+const svg = d3.select('#graph');
+const W = () => window.innerWidth;
+const H = () => window.innerHeight;
+
+// Setup zoom & pan layer
+const root = svg.append('g');
+svg.call(d3.zoom()
+  .scaleExtent([0.3, 3])
+  .on('zoom', (e) => root.attr('transform', e.transform))
+);
+
+document.getElementById('node-count').textContent = nodes.length;
+document.getElementById('link-count').textContent = links.length;
+
+// Build filter pills
+const activeTypes = new Set(Object.keys(TYPES));
+const activeThemes = new Set(Object.keys(THEMES));
+
+function buildPills(containerId, items, activeSet, withDot) {
+  const c = d3.select(containerId);
+  Object.entries(items).forEach(([key, val]) => {
+    const label = typeof val === 'string' ? val : val.label;
+    const color = typeof val === 'string' ? null : val.color;
+    const pill = c.append('button')
+      .attr('class', 'pill active')
+      .attr('data-key', key)
+      .on('click', function() {
+        if (activeSet.has(key)) activeSet.delete(key);
+        else activeSet.add(key);
+        d3.select(this).classed('active', activeSet.has(key));
+        applyFilters();
+      });
+    if (withDot && color) {
+      pill.append('span').attr('class', 'dot').style('background', color);
+    }
+    pill.append('span').text(label);
+  });
+}
+buildPills('#type-filters', TYPES, activeTypes, true);
+buildPills('#theme-filters', THEMES, activeThemes, false);
+
+// Force simulation
+const sim = d3.forceSimulation(nodes)
+  .force('link', d3.forceLink(links).id(d => d.id).distance(d => {
+    // shorter links for high-weight hubs
+    const w = (d.source.weight || 2) + (d.target.weight || 2);
+    return 110 - Math.min(w * 6, 40);
+  }).strength(0.45))
+  .force('charge', d3.forceManyBody().strength(d => -180 - (d.weight || 2) * 60))
+  .force('center', d3.forceCenter(W() / 2, H() / 2))
+  .force('collide', d3.forceCollide().radius(d => nodeRadius(d) + 6));
+
+function nodeRadius(d) {
+  return 6 + (d.weight || 2) * 3.5;
+}
+
+// Draw links
+const linkSel = root.append('g')
+  .attr('class', 'links')
+  .selectAll('line')
+  .data(links)
+  .enter().append('line')
+  .attr('class', 'link');
+
+// Draw nodes
+const nodeSel = root.append('g')
+  .attr('class', 'nodes')
+  .selectAll('g')
+  .data(nodes)
+  .enter().append('g')
+  .attr('class', 'node-group')
+  .call(d3.drag()
+    .on('start', dragStart)
+    .on('drag', dragging)
+    .on('end', dragEnd)
+  )
+  .on('click', (e, d) => { e.stopPropagation(); selectNode(d); })
+  .on('mouseenter', (e, d) => hoverNode(d))
+  .on('mouseleave', () => unhoverNode());
+
+nodeSel.append('circle')
+  .attr('class', 'node-circle')
+  .attr('r', d => nodeRadius(d))
+  .attr('fill', d => TYPES[d.type].color);
+
+nodeSel.append('text')
+  .attr('class', d => 'node-label' + (d.weight >= 4 ? ' large' : ''))
+  .attr('dy', d => nodeRadius(d) + 13)
+  .attr('text-anchor', 'middle')
+  .text(d => d.acronym);
+
+// Tick update
+sim.on('tick', () => {
+  linkSel
+    .attr('x1', d => d.source.x)
+    .attr('y1', d => d.source.y)
+    .attr('x2', d => d.target.x)
+    .attr('y2', d => d.target.y);
+  nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+});
+
+// Drag handlers
+function dragStart(e, d) {
+  if (!e.active) sim.alphaTarget(0.3).restart();
+  d.fx = d.x; d.fy = d.y;
+}
+function dragging(e, d) {
+  d.fx = e.x; d.fy = e.y;
+}
+function dragEnd(e, d) {
+  if (!e.active) sim.alphaTarget(0);
+  // Keep nodes pinned where user dropped them (set to null to unpin)
+  // d.fx = null; d.fy = null;
+}
+
+// ============================================================
+// HOVER / SELECTION
+// ============================================================
+
+function neighborsOf(id) {
+  const set = new Set([id]);
+  links.forEach(l => {
+    const s = typeof l.source === 'object' ? l.source.id : l.source;
+    const t = typeof l.target === 'object' ? l.target.id : l.target;
+    if (s === id) set.add(t);
+    if (t === id) set.add(s);
+  });
+  return set;
+}
+
+function hoverNode(d) {
+  const N = neighborsOf(d.id);
+  nodeSel.select('circle').classed('dimmed', n => !N.has(n.id));
+  nodeSel.select('text').classed('dimmed', n => !N.has(n.id));
+  linkSel
+    .classed('highlighted', l => l.source.id === d.id || l.target.id === d.id)
+    .classed('dimmed', l => l.source.id !== d.id && l.target.id !== d.id);
+}
+function unhoverNode() {
+  nodeSel.select('circle').classed('dimmed', false);
+  nodeSel.select('text').classed('dimmed', false);
+  linkSel.classed('highlighted', false).classed('dimmed', false);
+}
+
+// ============================================================
+// DETAIL PANEL
+// ============================================================
+
+const panel = document.getElementById('detail');
+document.getElementById('detail-close').onclick = () => panel.classList.remove('open');
+svg.on('click', () => panel.classList.remove('open'));
+
+function selectNode(d) {
+  const type = TYPES[d.type];
+  document.getElementById('d-dot').style.background = type.color;
+  document.getElementById('d-cat').textContent = type.label;
+  document.getElementById('d-title').textContent = d.name;
+  document.getElementById('d-acronym').textContent = d.acronym + (d.theme ? '  ·  ' + THEMES[d.theme] : '');
+  document.getElementById('d-desc').textContent = d.desc;
+
+  // Meta row (theme + weight)
+  const meta = document.getElementById('d-meta');
+  meta.innerHTML = '';
+  if (d.theme) {
+    const m = document.createElement('div');
+    m.className = 'detail-meta-item';
+    m.innerHTML = `<strong>Foco</strong>${THEMES[d.theme]}`;
+    meta.appendChild(m);
+  }
+  const m2 = document.createElement('div');
+  m2.className = 'detail-meta-item';
+  m2.innerHTML = `<strong>Tipo</strong>${type.label}`;
+  meta.appendChild(m2);
+
+  // Link
+  const linkEl = document.getElementById('d-link');
+  if (d.url) {
+    linkEl.href = d.url;
+    linkEl.style.display = 'inline-block';
+  } else {
+    linkEl.style.display = 'none';
+  }
+
+  // Connections
+  const N = neighborsOf(d.id);
+  N.delete(d.id);
+  const wrap = document.getElementById('d-connections-wrap');
+  const cont = document.getElementById('d-connections');
+  cont.innerHTML = '';
+  if (N.size > 0) {
+    wrap.style.display = 'block';
+    Array.from(N).forEach(nid => {
+      const nn = nodes.find(x => x.id === nid);
+      if (!nn) return;
+      const chip = document.createElement('span');
+      chip.className = 'connection-chip';
+      chip.textContent = nn.acronym;
+      chip.onclick = (e) => { e.stopPropagation(); selectNode(nn); };
+      cont.appendChild(chip);
+    });
+  } else {
+    wrap.style.display = 'none';
+  }
+
+  panel.classList.add('open');
+  hoverNode(d);
+}
+
+// ============================================================
+// FILTERS & SEARCH
+// ============================================================
+
+const searchInput = document.getElementById('search');
+searchInput.addEventListener('input', applyFilters);
+
+function applyFilters() {
+  const q = searchInput.value.trim().toLowerCase();
+  const visible = new Set();
+  nodes.forEach(n => {
+    const typeOk = activeTypes.has(n.type);
+    const themeOk = activeThemes.has(n.theme);
+    const searchOk = !q ||
+      n.name.toLowerCase().includes(q) ||
+      n.acronym.toLowerCase().includes(q) ||
+      (n.desc || '').toLowerCase().includes(q);
+    if (typeOk && themeOk && searchOk) visible.add(n.id);
+  });
+
+  nodeSel.style('opacity', d => visible.has(d.id) ? 1 : 0.08)
+    .style('pointer-events', d => visible.has(d.id) ? 'auto' : 'none');
+
+  linkSel.style('opacity', l =>
+    (visible.has(l.source.id) && visible.has(l.target.id)) ? 0.55 : 0.04
+  );
+}
+
+// ============================================================
+// RESPONSIVE
+// ============================================================
+window.addEventListener('resize', () => {
+  sim.force('center', d3.forceCenter(W() / 2, H() / 2));
+  sim.alpha(0.3).restart();
+});
+</script>
+</body>
+</html>
