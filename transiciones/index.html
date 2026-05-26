@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transiciones · Ocho curvas de cambio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,0,600;9..144,1,400;9..144,1,500&family=JetBrains+Mono:wght@400;500&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Off-white paper + structural forest blocks */
+    --bg: #f4f1e8;          /* clean warm off-white */
+    --bg-warm: #ede8d8;
+    --bg-deep: #e3dcc6;
+    --bg-card: #f8f5ec;
+    --bg-block: #1c2e23;    /* deep forest for structural blocks */
+    --bg-block-soft: #2a3f31;
+    --ink: #1c2e23;
+    --ink-soft: #2d4634;
+    --ink-muted: #6a7a68;
+    --ink-on-block: #f0e8d4;  /* ivory text on dark blocks */
+    --ink-on-block-muted: #94a888;
+    --line: #c9bf9e;
+    --line-soft: #d6cda9;
+    --accent: #2d4634;
+    --accent-bright: #4a6b50;
+    --accent-warm: #b85a2d;
+    --accent-deep: #8e421f;
+    --from: #8a7d5e;
+    --to: #4a6b50;
+    --c-food: #b87d2e;
+    --c-agri: #5a7838;
+    --c-energy: #c46827;
+    --c-mining: #8e5a25;
+    --c-water: #3c6d8e;
+    --c-tourism: #a64668;
+    --c-circ: #6b4d8e;
+    --c-climate: #a8472a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 0%, rgba(45, 70, 52, 0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 10% 100%, rgba(184, 90, 45, 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 95% 50%, rgba(45, 70, 52, 0.03) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: 0.045;
+    pointer-events: none;
+    z-index: 1;
+    mix-blend-mode: multiply;
+  }
+
+  main { position: relative; z-index: 2; }
+
+  /* ===== Hero ===== */
+  .hero {
+    padding: 80px 6vw 50px;
+    max-width: 1700px;
+    margin: 0 auto;
+    background: var(--bg-block);
+    color: var(--ink-on-block);
+    max-width: 100%;
+    border-bottom: 1px solid var(--bg-block-soft);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 90% 60% at 50% 0%, rgba(148, 168, 136, 0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 10% 100%, rgba(194, 104, 61, 0.06) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .hero > * { position: relative; z-index: 1; }
+
+  .hero-brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-on-block-muted);
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-brand::before {
+    content: '';
+    width: 32px; height: 1px;
+    background: var(--accent-warm);
+  }
+
+  .hero-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(36px, 6vw, 76px);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    color: var(--ink-on-block);
+    max-width: 18ch;
+    margin-bottom: 28px;
+  }
+  .hero-title em { font-style: italic; color: #94a888; }
+  .hero-title .warm { color: var(--accent-warm); }
+
+  .hero-lede {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(17px, 1.7vw, 22px);
+    line-height: 1.45;
+    color: #c8c5b8;
+    max-width: 62ch;
+  }
+
+  /* ===== Legend / how to read ===== */
+  .legend {
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: 30px 6vw 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 36px;
+    align-items: center;
+    border-top: 1px solid var(--line-soft);
+  }
+
+  .legend-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+
+  .legend-swatch {
+    display: inline-block;
+    width: 28px;
+    height: 12px;
+    border-radius: 2px;
+  }
+  .legend-swatch.old {
+    background: repeating-linear-gradient(
+      90deg,
+      var(--from) 0,
+      var(--from) 3px,
+      transparent 3px,
+      transparent 6px
+    );
+    opacity: 0.7;
+  }
+  .legend-swatch.new {
+    background: linear-gradient(to right, transparent, var(--accent-bright));
+    border-bottom: 2px solid var(--accent-bright);
+    height: 14px;
+  }
+  .legend-swatch.tip {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent-warm);
+  }
+
+  /* ===== Small multiples grid ===== */
+  .grid-stage {
+    max-width: 1700px;
+    margin: 0 auto;
+    padding: 30px 6vw 80px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    border: 1px solid var(--line-soft);
+    background: var(--line-soft);
+  }
+
+  @media (max-width: 1100px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 580px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .cell {
+    background: var(--bg-card);
+    padding: 22px 22px 18px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
+  }
+  .cell:hover { background: var(--bg-warm); }
+
+  .cell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .cell-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.15em;
+    color: var(--ink-muted);
+    padding-top: 4px;
+  }
+
+  .cell-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  .cell-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .cell-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 14px;
+  }
+
+  /* The mini curve */
+  .cell-curve {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 14px;
+    margin-top: auto;
+  }
+
+  .cell-curve svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* States below the curve */
+  .cell-states {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 6px;
+    align-items: center;
+    font-size: 11px;
+    line-height: 1.3;
+    margin-top: 6px;
+  }
+  .cell-state-from {
+    color: var(--from);
+    font-style: italic;
+    text-align: left;
+  }
+  .cell-state-to {
+    color: var(--c, var(--to));
+    font-weight: 500;
+    text-align: right;
+  }
+  .cell-state-arrow {
+    color: var(--accent-warm);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* Hover state for cell — reveal more */
+  .cell-hint {
+    position: absolute;
+    bottom: 12px; right: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .cell:hover .cell-hint { opacity: 1; }
+
+  /* ===== Detail panel (modal-like) ===== */
+  .detail {
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 46, 35, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    overflow-y: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+  .detail.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .detail-card {
+    width: 100%;
+    max-width: 1100px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    padding: 56px 56px 60px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .detail.open .detail-card { transform: translateY(0); }
+
+  .detail-close {
+    position: absolute;
+    top: 20px; right: 22px;
+    width: 38px; height: 38px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    transition: all 0.2s ease;
+  }
+  .detail-close:hover {
+    background: var(--accent-warm);
+    color: var(--bg);
+    border-color: var(--accent-warm);
+  }
+
+  .detail-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--c-focus, var(--accent));
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .detail-eyebrow::before {
+    content: '';
+    width: 26px; height: 1px;
+    background: var(--c-focus, var(--accent));
+  }
+
+  .detail-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(32px, 4.5vw, 52px);
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .detail-title em {
+    font-style: italic;
+    color: var(--c-focus, var(--accent));
+  }
+
+  .detail-lede {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+    max-width: 60ch;
+    margin-bottom: 40px;
+  }
+
+  /* Big curve in detail view */
+  .detail-curve {
+    width: 100%;
+    height: 240px;
+    margin-bottom: 40px;
+    background: linear-gradient(to right,
+      rgba(138, 125, 94, 0.08) 0%,
+      rgba(74, 107, 80, 0.10) 100%);
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .detail-curve svg {
+    width: 100%; height: 100%;
+    overflow: visible;
+  }
+
+  .detail-curve-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0 0;
+    color: var(--ink-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+
+  /* Old → New states */
+  .states {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 48px;
+  }
+
+  .state-block {
+    padding: 28px 28px;
+  }
+  .state-block.old {
+    background: rgba(138, 125, 94, 0.10);
+    border-left: 3px solid var(--from);
+  }
+  .state-block.new {
+    background: rgba(74, 107, 80, 0.08);
+    border-left: 3px solid var(--c-focus, var(--to));
+  }
+
+  .state-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .state-block.old .state-eyebrow { color: var(--from); }
+  .state-block.new .state-eyebrow { color: var(--c-focus, var(--to)); }
+
+  .state-headline {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.2;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .state-block.old .state-headline {
+    color: var(--ink-soft);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .state-block.new .state-headline { color: var(--ink); }
+
+  .state-traits { list-style: none; }
+  .state-traits li {
+    font-size: 13.5px;
+    line-height: 1.5;
+    padding: 7px 0 7px 18px;
+    position: relative;
+    border-bottom: 1px solid rgba(28, 46, 35, 0.06);
+    color: var(--ink-soft);
+  }
+  .state-traits li:last-child { border-bottom: none; }
+  .state-block.old .state-traits li::before {
+    content: '·';
+    position: absolute; left: 4px;
+    color: var(--from);
+  }
+  .state-block.new .state-traits li::before {
+    content: '→';
+    position: absolute; left: 0;
+    color: var(--c-focus, var(--to));
+    font-size: 11px;
+  }
+
+  /* Three dimensions */
+  .dims-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .dims-label::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--c-focus, var(--accent-warm));
+  }
+  .dims-label .heart {
+    color: var(--c-focus, var(--accent-warm));
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0;
+    font-family: 'Fraunces', serif;
+    font-size: 13px;
+    margin-left: 4px;
+  }
+
+  .dims-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 44px;
+  }
+
+  .dim {
+    background: var(--bg-warm);
+    border: 1px solid var(--line);
+    padding: 24px;
+    transition: border-color 0.25s ease, transform 0.3s ease;
+  }
+  .dim:hover {
+    border-color: var(--c-focus, var(--accent));
+    transform: translateY(-2px);
+  }
+
+  .dim-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    color: var(--c-focus, var(--accent));
+    margin-bottom: 8px;
+  }
+
+  .dim-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 19px;
+    margin-bottom: 12px;
+    color: var(--ink);
+  }
+
+  .dim-body {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+  .dim-body strong { color: var(--ink); font-weight: 600; }
+
+  /* Examples */
+  .examples {
+    border-top: 1px solid var(--line-soft);
+    padding-top: 28px;
+  }
+
+  /* Context block — quieter than services */
+  .context-block {
+    border-top: 1px solid var(--line-soft);
+    padding-top: 28px;
+    padding-bottom: 32px;
+    margin-bottom: 12px;
+  }
+  .context-body {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    max-width: 70ch;
+    margin-top: 4px;
+  }
+  .examples-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 18px;
+  }
+  .examples ul { list-style: none; }
+  .example-row {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line-soft);
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 16px;
+    align-items: baseline;
+  }
+  .example-row:last-child { border-bottom: none; }
+  .example-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--c-focus, var(--accent-warm));
+    letter-spacing: 0.1em;
+  }
+  .example-text {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .example-text strong { color: var(--ink); font-weight: 600; }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .detail-card { padding: 40px 24px 44px; }
+    .states, .dims-grid { grid-template-columns: 1fr; }
+    .detail-curve { height: 180px; }
+    .legend { gap: 20px; padding-top: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+
+<section class="hero">
+  <div class="hero-brand">Transiciones Consulting · Gobernanza, Economía, Técnica</div>
+  <h1 class="hero-title">
+    Ocho <em>transiciones</em> sectoriales, una misma <span class="warm">dinámica</span>
+  </h1>
+  <p class="hero-lede">
+    Cada sector enfrenta el reemplazo gradual de un modelo dominante por otro más sostenible. Las curvas comparten estructura pero difieren en tiempos, actores y palancas. Selecciona un sector para revisar su contexto, dimensiones críticas y los servicios que ofrecemos.
+  </p>
+</section>
+
+<div class="legend">
+  <div class="legend-title">Cómo leer las curvas</div>
+  <div class="legend-item">
+    <span class="legend-swatch old"></span>
+    <span>Modelo actual en retirada</span>
+  </div>
+  <div class="legend-item">
+    <span class="legend-swatch new"></span>
+    <span>Modelo sostenible en consolidación</span>
+  </div>
+  <div class="legend-item">
+    <span class="legend-swatch tip"></span>
+    <span>Punto de inflexión</span>
+  </div>
+</div>
+
+<section class="grid-stage">
+  <div class="grid" id="grid"></div>
+</section>
+
+</main>
+
+<aside class="detail" id="detail">
+  <div class="detail-card" id="detail-card"></div>
+</aside>
+
+<script>
+// ============================================================
+// CONTENT
+// ============================================================
+
+const TRANSITIONS = [
+  {
+    id: 'food',
+    name: 'Sistemas Alimentarios',
+    tag: 'Food Systems',
+    color: '#d4a574',
+    fromShort: 'Cadenas opacas',
+    toShort: 'Sistemas trazables',
+    lede: 'Cómo producimos, distribuimos y consumimos alimentos bajo presión climática, exigencias de mercado y nuevas regulaciones de trazabilidad.',
+    from: {
+      headline: 'Cadenas largas, opacas y poco diferenciadas',
+      traits: [
+        'Trazabilidad limitada entre productor y comprador final',
+        'Costos ambientales y sociales externalizados',
+        'Alta dependencia de insumos químicos importados',
+        'Producción enfocada en commodity sin valor agregado verificable'
+      ]
+    },
+    to: {
+      headline: 'Sistemas trazables, resilientes y de mayor valor',
+      traits: [
+        'Trazabilidad digital end-to-end y certificaciones reconocidas',
+        'Prácticas regenerativas e integración con servicios ecosistémicos',
+        'Cadenas más cortas y proveedores locales priorizados',
+        'Producto diferenciado con primas por sostenibilidad verificada'
+      ]
+    },
+    dims: [
+      { dim: 'Gobernanza', title: 'Coordinación de cadena', body: 'Empresas exportadoras, cooperativas, gremios y agencias públicas requieren protocolos compartidos de trazabilidad, estándares de cumplimiento y mecanismos de coordinación que respondan a exigencias de mercados de destino cada vez más explícitas.' },
+      { dim: 'Economía', title: 'Captura de valor', body: 'El desafío es trasladar las primas por sostenibilidad al productor primario sin comprometer competitividad. Esto requiere contratos forward, instrumentos financieros adaptados al ciclo agrícola, y modelos de valoración de servicios ecosistémicos.' },
+      { dim: 'Técnica', title: 'Trazabilidad y procesos', body: 'Plataformas digitales de trazabilidad, agricultura de precisión, bioinsumos y certificaciones específicas por mercado destino (UE, EE.UU., Asia). La selección técnica depende del cliente final y de la regulación aplicable.' }
+    ],
+    context: 'La industria alimentaria chilena enfrenta nuevas exigencias normativas en mercados de destino: CBAM europeo, requisitos de huella hídrica y de carbono de retailers globales, y estándares emergentes de trazabilidad digital. Programas como Transforma Alimentos (CORFO) y AgroCoopInnova (FIA) buscan acelerar la respuesta sectorial, mientras grandes exportadores y cooperativas avanzan en estrategias propias.',
+    services: [
+      { mark: '01', text: 'Diagnóstico de exposición a exigencias regulatorias en mercados de destino y diseño de hoja de ruta de cumplimiento para empresas exportadoras.' },
+      { mark: '02', text: 'Asesoría a cooperativas y asociaciones de productores para acceder a financiamiento de transición y diseño de gobernanza colectiva.' },
+      { mark: '03', text: 'Evaluación de programas públicos alimentarios y diseño de instrumentos de fomento sectorial para agencias regionales.' }
+    ]
+  },
+  {
+    id: 'agri',
+    name: 'Agricultura Sustentable',
+    tag: 'Sustainable Agriculture',
+    color: '#8aa86b',
+    fromShort: 'Producción intensiva',
+    toShort: 'Agricultura regenerativa',
+    lede: 'Producir con menor uso de agua, menor huella ambiental y mayor diferenciación, en un contexto de sequía estructural y exigencias crecientes de mercados de exportación.',
+    from: {
+      headline: 'Modelo intensivo en agua y químicos',
+      traits: [
+        'Riego con eficiencias bajas y derechos sin medición',
+        'Monocultivos con baja diversificación productiva',
+        'Suelo gestionado como sustrato, no como activo biológico',
+        'Producción de commodity con escaso valor agregado'
+      ]
+    },
+    to: {
+      headline: 'Modelo regenerativo y competitivo',
+      traits: [
+        'Riego tecnificado y telemetría integrada a gestión predial',
+        'Prácticas regenerativas y cultivos diversificados',
+        'Suelo gestionado como activo productivo de mediano plazo',
+        'Producto diferenciado con huella verificable'
+      ]
+    },
+    dims: [
+      { dim: 'Gobernanza', title: 'Gestión de cuenca', body: 'La unidad de planificación deja de ser el predio para pasar a la cuenca. Esto requiere coordinación entre juntas de vigilancia, comunidades de aguas, gremios productivos y agencias públicas, con reglas claras de monitoreo, distribución y obras compartidas.' },
+      { dim: 'Economía', title: 'Financiamiento de transición', body: 'La reconversión tiene horizontes de retorno de 5 a 10 años. Las herramientas relevantes incluyen seguros climáticos, créditos verdes, bonos de carbono agrícola, y contratos forward que distribuyan riesgo entre productor y comprador.' },
+      { dim: 'Técnica', title: 'Adopción tecnológica', body: 'Riego tecnificado, fertirrigación, sensores de humedad y evapotranspiración, varietales adaptados, prácticas de cobertura. La oferta tecnológica está disponible regionalmente; el cuello de botella es la transferencia hacia el productor y la integración a la gestión diaria.' }
+    ],
+    context: 'Coquimbo opera bajo sequía estructural por más de una década, con exigencias crecientes de huella hídrica y de carbono desde mercados de exportación. Iniciativas como el PER Fruticultura Sustentable y el PER Transforma Hídrico buscan articular respuestas sectoriales, mientras exportadoras, cooperativas y juntas de vigilancia ajustan sus estrategias individuales y colectivas.',
+    services: [
+      { mark: '01', text: 'Estrategia de transición para empresas frutícolas exportadoras: priorización de inversiones, instrumentos de financiamiento y plan de cumplimiento de mercado destino.' },
+      { mark: '02', text: 'Asesoría a juntas de vigilancia y asociaciones de productores en gobernanza hídrica de cuenca y modelos colectivos de inversión en riego.' },
+      { mark: '03', text: 'Evaluación de programas de fomento agrícola y diseño de instrumentos territoriales para agencias regionales y ministeriales.' }
+    ]
+  },
+  {
+    id: 'energy',
+    name: 'Transición Energética',
+    tag: 'Energy Transition',
+    color: '#e8a059',
+    fromShort: 'Fósil centralizado',
+    toShort: 'Renovable distribuido',
+    lede: 'Pasar de un sistema energético basado en combustibles fósiles y generación centralizada a uno renovable, distribuido y compatible con compromisos de carbono neutralidad.',
+    from: {
+      headline: 'Matriz fósil con concentración de actores',
+      traits: [
+        'Generación dependiente de carbón, gas y diésel',
+        'Pocos actores grandes en generación y comercialización',
+        'Exposición a volatilidad de precios de combustibles',
+        'Externalidades cargadas a comunidades anfitrionas'
+      ]
+    },
+    to: {
+      headline: 'Sistema renovable, distribuido y bajo en carbono',
+      traits: [
+        'Solar, eólica, almacenamiento e hidrógeno verde a escala',
+        'Generación distribuida y autogeneración comercial',
+        'PPAs corporativos con contratos de largo plazo',
+        'Mecanismos de transición justa para zonas afectadas'
+      ]
+    },
+    dims: [
+      { dim: 'Gobernanza', title: 'Coordinación multinivel', body: 'La transición requiere coordinación entre Ministerio de Energía, SEA, municipios, CNE, Coordinador Eléctrico y comunidades. Los procesos de transición justa con territorios afectados por cierre de termoeléctricas o por nueva inversión renovable son condición de viabilidad.' },
+      { dim: 'Economía', title: 'Estructura de financiamiento', body: 'PPAs corporativos, bonos verdes, deuda concesional multilateral y subsidios a generación distribuida configuran el mapa de financiamiento. El desafío clave es el diseño de subastas que integren variabilidad sin desincentivar nueva capacidad firme.' },
+      { dim: 'Técnica', title: 'Integración a escala', body: 'Solar, eólica, almacenamiento por baterías, hidrógeno verde, redes inteligentes y electromovilidad están maduros. La frontera técnica es operar un sistema con alta penetración variable manteniendo estabilidad y calidad de suministro.' }
+    ],
+    context: 'El compromiso de carbono neutralidad 2050 y la Ley Marco de Cambio Climático establecen trayectorias vinculantes para ministerios, regiones y sectores. El sector privado avanza con compromisos corporativos de Net Zero, contratación de PPAs renovables y estrategias de descarbonización de cadenas de suministro. Coquimbo aparece en la geografía del hidrógeno verde por sus condiciones de radiación e infraestructura portuaria.',
+    services: [
+      { mark: '01', text: 'Estrategia de descarbonización corporativa: línea base de emisiones, plan de reducción, contratación de PPAs y reporte alineado a estándares internacionales.' },
+      { mark: '02', text: 'Asesoría a empresas industriales y mineras en electrificación de procesos, hidrógeno verde y autogeneración renovable.' },
+      { mark: '03', text: 'Apoyo a gobiernos regionales y municipios en planificación energética territorial y procesos de transición justa.' }
+    ]
+  },
+  {
+    id: 'mining',
+    name: 'Minería Sustentable',
+    tag: 'Sustainable Mining',
+    color: '#b88845',
+    fromShort: 'Licencia social frágil',
+    toShort: 'Contrato territorial',
+    lede: 'La minería requerida para la transición global solo es viable bajo nuevas condiciones: agua, energía, relación con comunidades y trazabilidad ESG de la materia prima.',
+    from: {
+      headline: 'Extracción con licencia social condicionada',
+      traits: [
+        'Consumo intensivo de agua continental',
+        'Flota diésel y huella de carbono alta',
+        'Relación transaccional con comunidades anfitrionas',
+        'Renta minera capturada fuera del territorio de operación'
+      ]
+    },
+    to: {
+      headline: 'Operación con contrato territorial renovado',
+      traits: [
+        'Agua desalada para uso minero exclusivo',
+        'Flota eléctrica y procesos con hidrógeno verde',
+        'Acuerdos de beneficios mutuos verificables',
+        'Encadenamientos productivos con proveedores regionales'
+      ]
+    },
+    dims: [
+      { dim: 'Gobernanza', title: 'Relación con territorio', body: 'Consulta indígena rigurosa, gobernanza de cuenca compartida con otros usuarios, transparencia sobre uso de agua y emisiones, y acuerdos de beneficios verificables son condiciones de operación bajo el nuevo escrutinio regulatorio y social.' },
+      { dim: 'Economía', title: 'Distribución de valor', body: 'Encadenamientos productivos locales, desarrollo de proveedores tecnológicos regionales, fondos de desarrollo co-financiados y mecanismos de captura de renta territorial son piezas centrales de la nueva ecuación económica del sector.' },
+      { dim: 'Técnica', title: 'Operación limpia', body: 'Desalación con transporte por tubería, electrificación de flota de transporte y procesos, hidrógeno para faenas pesadas, lixiviación de menor impacto y monitoreo en tiempo real de emisiones y vertimientos son tecnologías ya maduras.' }
+    ],
+    context: 'La demanda global de cobre, litio y minerales críticos para la transición energética posiciona a Chile como proveedor estratégico. Compradores europeos avanzan en exigencias de trazabilidad ESG con pasaporte digital de materiales. Las grandes mineras operan bajo compromisos corporativos Net Zero verificables, mientras conflictos territoriales por agua y biodiversidad pueden detener proyectos por años si no se gestionan tempranamente.',
+    services: [
+      { mark: '01', text: 'Estrategia de descarbonización y gestión de agua para operaciones mineras: línea base, plan de inversión y reporte ESG alineado a estándares de inversionistas y compradores.' },
+      { mark: '02', text: 'Diseño de programas de relacionamiento territorial y desarrollo de proveedores regionales con métricas de impacto verificables.' },
+      { mark: '03', text: 'Asesoría a gremios y asociaciones sectoriales en estrategia colectiva frente a regulación emergente y exigencias de mercado.' }
+    ]
+  },
+  {
+    id: 'water',
+    name: 'Gestión Hídrica',
+    tag: 'Water / Hydric',
+    color: '#6a9bb8',
+    fromShort: 'Recurso mal gobernado',
+    toShort: 'Cuenca con datos',
+    lede: 'En zonas áridas, la gestión del agua es la transición que condiciona a todas las demás. Su rediseño es operacional, regulatorio y económico.',
+    from: {
+      headline: 'Recurso escaso, mal gobernado y sub-medido',
+      traits: [
+        'Derechos de agua sin uso efectivo ni control',
+        'Conflictos entre usuarios sin reglas de decisión',
+        'Riego con eficiencias por debajo del estándar técnico',
+        'Servicios sanitarios rurales con infraestructura precaria'
+      ]
+    },
+    to: {
+      headline: 'Gestión por cuenca con datos compartidos',
+      traits: [
+        'Telemetría obligatoria y plataformas de información abiertas',
+        'Mesas de cuenca con reglas claras de decisión',
+        'Riego tecnificado y modelación hidrológica aplicada',
+        'Servicios sanitarios rurales modernizados'
+      ]
+    },
+    dims: [
+      { dim: 'Gobernanza', title: 'Cuenca y multinivel', body: 'Juntas de vigilancia, comunidades de aguas, servicios sanitarios rurales, DGA, MOP, municipios y usuarios productivos deben articularse a escala de cuenca con reglas de decisión transparentes y monitoreo compartido.' },
+      { dim: 'Economía', title: 'Cartera de inversión', body: 'Embalses, desaladoras, tecnificación de riego y modernización de redes sanitarias rurales requieren combinar FNDR, MOP, fondos privados y créditos multilaterales. La secuenciación y priorización de inversiones es la pregunta económica principal.' },
+      { dim: 'Técnica', title: 'Plataformas y sensores', body: 'Pronóstico hidrológico, modelación de acuíferos, telemetría de riego y servicios rurales, sensores de evapotranspiración, ósmosis inversa y reúso de aguas grises configuran un menú técnico ya disponible regionalmente.' }
+    ],
+    context: 'Coquimbo enfrenta sequía estructural sostenida con embalses por debajo del 20% por años consecutivos. El PER Transforma Hídrico, el Consorcio Tecnológico Quitai Anko y los observatorios de servicios sanitarios rurales configuran un ecosistema técnico denso. La reforma al Código de Aguas, la telemetría obligatoria y la presión por desaladoras de uso múltiple definen el contexto regulatorio.',
+    services: [
+      { mark: '01', text: 'Estrategia hídrica para empresas industriales, agrícolas y mineras: análisis de riesgo, plan de eficiencia, reúso y mecanismos de aseguramiento del recurso.' },
+      { mark: '02', text: 'Asesoría a juntas de vigilancia, comunidades de aguas y servicios sanitarios rurales en gobernanza de cuenca, monitoreo y financiamiento de obras.' },
+      { mark: '03', text: 'Diseño y evaluación de instrumentos hídricos para agencias públicas: políticas de eficiencia, marcos regulatorios y programas territoriales.' }
+    ]
+  },
+  {
+    id: 'tourism',
+    name: 'Turismo Sustentable',
+    tag: 'Sustainable Tourism',
+    color: '#d68a9e',
+    fromShort: 'Turismo extractivo',
+    toShort: 'Turismo regenerativo',
+    lede: 'Reconfigurar el turismo desde un modelo extractivo y estacional hacia uno regenerativo, con cadenas de valor locales y umbrales de carga gestionados.',
+    from: {
+      headline: 'Modelo masivo, extractivo y estacional',
+      traits: [
+        'Concentración en pocos destinos saturados',
+        'Beneficios económicos fuera de la comunidad anfitriona',
+        'Infraestructura sin gestión de impacto ambiental',
+        'Identidad local reducida a elemento decorativo'
+      ]
+    },
+    to: {
+      headline: 'Modelo regenerativo y de valor compartido',
+      traits: [
+        'Destinos con umbrales de carga y gestión activa',
+        'Cadenas locales: gastronomía, artesanía, agroturismo',
+        'Diversificación hacia astroturismo, naturaleza y cultura',
+        'Comunidades en rol de anfitriona, no de escenografía'
+      ]
+    },
+    dims: [
+      { dim: 'Gobernanza', title: 'Diseño de destino', body: 'Operadores turísticos, comunidades anfitrionas, municipios y agencias regionales requieren coordinación para definir umbrales de carga, repartición de beneficios y protección de los atributos únicos del territorio.' },
+      { dim: 'Economía', title: 'Cadenas locales', body: 'Encadenar el turismo con producción local, definir certificaciones de calidad y sostenibilidad, segmentar hacia visitantes de mayor valor y menor huella, e introducir cobros por servicios ecosistémicos son palancas concretas.' },
+      { dim: 'Técnica', title: 'Infraestructura adaptada', body: 'Senderismo regenerativo, hospedaje de baja huella, gestión remota de residuos, electromovilidad turística y plataformas digitales de información. El astroturismo requiere planificación lumínica territorial y certificación de cielos.' }
+    ],
+    context: 'La Región de Coquimbo concentra observatorios de clase mundial y ecosistemas únicos para astroturismo y turismo de naturaleza. El PER Transforma Turismo (CORFO+GORE) busca articular la oferta regional. El cambio climático afecta directamente la oferta turística costera, mientras viajeros internacionales exigen experiencias auténticas y de bajo impacto.',
+    services: [
+      { mark: '01', text: 'Estrategia de sostenibilidad para operadores turísticos: gestión de impacto, certificaciones y posicionamiento en segmentos de mayor valor.' },
+      { mark: '02', text: 'Diseño de gobernanza de destinos turísticos junto a municipios, comunidades y operadores: umbrales, distribución de beneficios y planes de manejo.' },
+      { mark: '03', text: 'Asesoría a agencias regionales en diseño de programas de turismo sostenible y evaluación de iniciativas territoriales.' }
+    ]
+  },
+  {
+    id: 'circ',
+    name: 'Economía Circular',
+    tag: 'Circular Economy',
+    color: '#a584c4',
+    fromShort: 'Modelo lineal',
+    toShort: 'Materiales que circulan',
+    lede: 'Rediseñar productos, procesos y territorios para mantener materiales en uso. Requiere combinación de regulación, modelos de negocio y coordinación de actores.',
+    from: {
+      headline: 'Modelo lineal: extraer, producir, desechar',
+      traits: [
+        'Residuos gestionados como costo de disposición',
+        'Productos no diseñados para fin de vida',
+        'Pérdida de materiales valiosos en vertederos',
+        'Costos ambientales no incorporados a precios'
+      ]
+    },
+    to: {
+      headline: 'Sistemas con flujo circular de materiales',
+      traits: [
+        'EPR con sistemas de gestión colectivos operativos',
+        'Ecodiseño y modelos producto-como-servicio',
+        'Simbiosis industrial entre sectores',
+        'Trazabilidad digital de materiales críticos'
+      ]
+    },
+    dims: [
+      { dim: 'Gobernanza', title: 'Coordinación multi-actor', body: 'La circularidad requiere coordinación entre productores, gestores intermedios, recicladores, municipios y consumidores. Esquemas de Responsabilidad Extendida del Productor, sistemas colectivos de gestión y plataformas de simbiosis industrial son las piezas centrales.' },
+      { dim: 'Economía', title: 'Modelos y precios', body: 'Producto-como-servicio, mercados secundarios de materiales, logística inversa rentable y instrumentos como ecotasas y depósitos son los mecanismos económicos. El desafío central es hacer competitiva la opción circular frente a la lineal.' },
+      { dim: 'Técnica', title: 'Diseño y procesos', body: 'Ecodiseño desde el origen, tecnologías de separación y recuperación, valorización energética como último recurso, plataformas digitales de match residuo-insumo, y análisis de ciclo de vida como práctica estándar de gestión.' }
+    ],
+    context: 'La Ley REP avanza en implementación por categorías: envases, neumáticos, electrónica y baterías. El programa Territorio Circular (CORFO) apoya regiones para diseñar hojas de ruta territoriales. El fin de vida de paneles fotovoltaicos emerge como categoría regional relevante, y la trazabilidad digital de materiales críticos se posiciona como exigencia de mercados de exportación.',
+    services: [
+      { mark: '01', text: 'Estrategia circular para empresas industriales: análisis de flujos materiales, modelos de negocio circulares y plan de implementación.' },
+      { mark: '02', text: 'Diseño de sistemas colectivos de gestión bajo Ley REP y asesoría a gremios en cumplimiento y posicionamiento sectorial.' },
+      { mark: '03', text: 'Diseño y evaluación de hojas de ruta territoriales de economía circular para gobiernos regionales y agencias.' }
+    ]
+  },
+  {
+    id: 'climate',
+    name: 'Adaptación Climática',
+    tag: 'Climate Adaptation',
+    color: '#c87a5a',
+    fromShort: 'Sistemas siglo XX',
+    toShort: 'Territorios anticipativos',
+    lede: 'Rediseñar infraestructura, operaciones y planificación bajo el supuesto de un clima distinto al histórico. Adaptación deja de ser opcional para condicionar viabilidad sectorial.',
+    from: {
+      headline: 'Sistemas diseñados para un clima inexistente',
+      traits: [
+        'Diseño basado en clima histórico ya no representativo',
+        'Reacción ante desastres en lugar de prevención',
+        'Sectores planificando de forma aislada',
+        'Sin acceso estructurado a financiamiento climático'
+      ]
+    },
+    to: {
+      headline: 'Territorios y operaciones resilientes',
+      traits: [
+        'Modelación climática regionalizada aplicada a decisiones',
+        'Soluciones basadas en naturaleza incorporadas',
+        'Planes climáticos sectoriales y comunales activos',
+        'Acceso a fondos GCF, GEF, BID y bonos verdes'
+      ]
+    },
+    dims: [
+      { dim: 'Gobernanza', title: 'Multinivel y participativa', body: 'Comités Regionales de Cambio Climático, Planes Comunales y mesas sectoriales requieren transformarse en procesos vivos con presupuesto, indicadores y consecuencias políticas, no en documentos formales sin operación.' },
+      { dim: 'Economía', title: 'Costos evitados y seguros', body: 'La adaptación rinde económicamente en horizontes largos: pérdidas evitadas, continuidad operacional, reducción de primas de seguro. Bonos catastróficos, seguros paramétricos y fondos rotatorios estructurados son herramientas en desarrollo.' },
+      { dim: 'Técnica', title: 'Soluciones basadas en evidencia', body: 'Modelación climática regional aplicada, evaluación de riesgo, infraestructura resiliente, soluciones basadas en naturaleza, sistemas de alerta temprana y planificación de retiro de zonas no defendibles componen el menú técnico actual.' }
+    ],
+    context: 'La Ley Marco de Cambio Climático obliga a planes climáticos a nivel regional, sectorial y comunal con metas vinculantes a 2050. Eventos extremos —aluviones, incendios, marejadas, olas de calor— afectan crecientemente infraestructura crítica y operaciones productivas. Fondos climáticos internacionales y bonos verdes ofrecen capital para inversiones bien estructuradas.',
+    services: [
+      { mark: '01', text: 'Análisis de riesgo climático y estrategia de adaptación para empresas: exposición de activos, plan de inversión y reporte alineado a estándares de inversionistas.' },
+      { mark: '02', text: 'Asesoría a municipios y gobiernos regionales en Planes de Acción Climática, priorización de medidas y estructuración de financiamiento.' },
+      { mark: '03', text: 'Diseño de instrumentos financieros climáticos: estructuración de proyectos para acceso a fondos GCF, GEF, BID y emisión de bonos verdes.' }
+    ]
+  }
+];
+
+// Each transition gets a slightly different inflection — varies position to feel less mechanical
+const sectorParams = {
+  food:    { mid: 0.62, steep: 0.95 },
+  agri:    { mid: 0.58, steep: 1.0 },
+  energy:  { mid: 0.46, steep: 1.15 },
+  mining:  { mid: 0.68, steep: 0.85 },
+  water:   { mid: 0.54, steep: 1.05 },
+  tourism: { mid: 0.63, steep: 0.95 },
+  circ:    { mid: 0.6,  steep: 1.0 },
+  climate: { mid: 0.5,  steep: 1.1 }
+};
+
+// ============================================================
+// CURVE GENERATION
+// ============================================================
+
+function sCurve(x, midpoint, steepness) {
+  return 1 / (1 + Math.exp(-steepness * (x - midpoint) * 10));
+}
+function decline(x, midpoint, steepness) {
+  return 1 - sCurve(x, midpoint, steepness);
+}
+
+function buildPath(fn, params, W, H, isFill, yScale) {
+  const points = [];
+  const N = 60;
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const x = t * W;
+    const y = H - (fn(t, ...params) * H * yScale + H * 0.08);
+    points.push([x, y]);
+  }
+  let d = `M ${points[0][0].toFixed(1)} ${points[0][1].toFixed(1)}`;
+  for (let i = 1; i < points.length; i++) {
+    d += ` L ${points[i][0].toFixed(1)} ${points[i][1].toFixed(1)}`;
+  }
+  if (isFill) d += ` L ${W} ${H} L 0 ${H} Z`;
+  return d;
+}
+
+// ============================================================
+// RENDER MINI CURVES
+// ============================================================
+
+function renderMiniCurve(t, container) {
+  const W = 280, H = 100;
+  const params = sectorParams[t.id];
+  const midX = params.mid * W;
+  const midY = H - (sCurve(params.mid, params.mid, params.steep) * H * 0.7 + H * 0.08);
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+
+  // Baseline grid
+  for (let i = 1; i <= 2; i++) {
+    const y = (H / 3) * i;
+    const line = document.createElementNS(svgNS, 'line');
+    line.setAttribute('x1', 0); line.setAttribute('y1', y);
+    line.setAttribute('x2', W); line.setAttribute('y2', y);
+    line.setAttribute('stroke', '#c9bf9e');
+    line.setAttribute('stroke-width', 0.4);
+    line.setAttribute('stroke-dasharray', '1.5 5');
+    line.setAttribute('opacity', 0.65);
+    svg.appendChild(line);
+  }
+
+  // OLD paradigm fill
+  const oldFill = document.createElementNS(svgNS, 'path');
+  oldFill.setAttribute('d', buildPath(decline, [params.mid, params.steep], W, H, true, 0.55));
+  oldFill.setAttribute('fill', '#8a7d5e');
+  oldFill.setAttribute('opacity', '0.16');
+  svg.appendChild(oldFill);
+
+  // OLD paradigm stroke (dashed)
+  const oldStroke = document.createElementNS(svgNS, 'path');
+  oldStroke.setAttribute('d', buildPath(decline, [params.mid, params.steep], W, H, false, 0.55));
+  oldStroke.setAttribute('fill', 'none');
+  oldStroke.setAttribute('stroke', '#8a7d5e');
+  oldStroke.setAttribute('stroke-width', '1.3');
+  oldStroke.setAttribute('stroke-dasharray', '3 4');
+  oldStroke.setAttribute('opacity', '0.6');
+  svg.appendChild(oldStroke);
+
+  // NEW paradigm fill
+  const newFill = document.createElementNS(svgNS, 'path');
+  newFill.setAttribute('d', buildPath(sCurve, [params.mid, params.steep], W, H, true, 0.7));
+  newFill.setAttribute('fill', t.color);
+  newFill.setAttribute('opacity', '0.22');
+  svg.appendChild(newFill);
+
+  // NEW paradigm stroke (solid)
+  const newStroke = document.createElementNS(svgNS, 'path');
+  newStroke.setAttribute('d', buildPath(sCurve, [params.mid, params.steep], W, H, false, 0.7));
+  newStroke.setAttribute('fill', 'none');
+  newStroke.setAttribute('stroke', t.color);
+  newStroke.setAttribute('stroke-width', '2.4');
+  newStroke.setAttribute('stroke-linecap', 'round');
+  newStroke.setAttribute('stroke-linejoin', 'round');
+  // animate stroke draw-in
+  const pathLength = 600;
+  newStroke.setAttribute('stroke-dasharray', pathLength);
+  newStroke.setAttribute('stroke-dashoffset', pathLength);
+  newStroke.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1)';
+  svg.appendChild(newStroke);
+
+  // Tipping point dot
+  const tipDot = document.createElementNS(svgNS, 'circle');
+  tipDot.setAttribute('cx', midX);
+  tipDot.setAttribute('cy', midY);
+  tipDot.setAttribute('r', 3.5);
+  tipDot.setAttribute('fill', '#b85a2d');
+  tipDot.setAttribute('opacity', '0');
+  tipDot.style.transition = 'opacity 0.4s ease 1s';
+  svg.appendChild(tipDot);
+
+  // Vertical guide line at inflection
+  const tipLine = document.createElementNS(svgNS, 'line');
+  tipLine.setAttribute('x1', midX); tipLine.setAttribute('y1', midY);
+  tipLine.setAttribute('x2', midX); tipLine.setAttribute('y2', H);
+  tipLine.setAttribute('stroke', '#b85a2d');
+  tipLine.setAttribute('stroke-width', '1');
+  tipLine.setAttribute('stroke-dasharray', '2 3');
+  tipLine.setAttribute('opacity', '0');
+  tipLine.style.transition = 'opacity 0.4s ease 1s';
+  svg.appendChild(tipLine);
+
+  container.appendChild(svg);
+
+  // Trigger animation
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      newStroke.setAttribute('stroke-dashoffset', '0');
+      tipDot.setAttribute('opacity', '1');
+      tipLine.setAttribute('opacity', '0.5');
+    }, 100);
+  });
+}
+
+// ============================================================
+// RENDER GRID
+// ============================================================
+
+const grid = document.getElementById('grid');
+
+TRANSITIONS.forEach((t, idx) => {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.dataset.id = t.id;
+  cell.style.setProperty('--c', t.color);
+  cell.innerHTML = `
+    <div class="cell-header">
+      <div class="cell-num">${String(idx + 1).padStart(2, '0')} / 08</div>
+      <div class="cell-dot" style="background: ${t.color}"></div>
+    </div>
+    <div class="cell-title">${t.name}</div>
+    <div class="cell-tag">${t.tag}</div>
+    <div class="cell-curve"></div>
+    <div class="cell-states">
+      <div class="cell-state-from">${t.fromShort}</div>
+      <div class="cell-state-arrow">→</div>
+      <div class="cell-state-to">${t.toShort}</div>
+    </div>
+    <div class="cell-hint">explorar →</div>
+  `;
+
+  // Render mini curve into the curve container
+  const curveContainer = cell.querySelector('.cell-curve');
+  renderMiniCurve(t, curveContainer);
+
+  cell.addEventListener('click', () => openDetail(t));
+  grid.appendChild(cell);
+});
+
+// ============================================================
+// DETAIL MODAL
+// ============================================================
+
+const detail = document.getElementById('detail');
+const detailCard = document.getElementById('detail-card');
+
+function renderBigCurve(t) {
+  const W = 1000, H = 240;
+  const params = sectorParams[t.id];
+  const midX = params.mid * W;
+  const midY = H - (sCurve(params.mid, params.mid, params.steep) * H * 0.7 + H * 0.08);
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  let html = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+
+  // Grid
+  for (let i = 1; i <= 3; i++) {
+    const y = (H / 4) * i;
+    html += `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#c9bf9e" stroke-width="0.4" stroke-dasharray="2 6" opacity="0.6"/>`;
+  }
+
+  // Old paradigm fill + stroke
+  html += `<path d="${buildPath(decline, [params.mid, params.steep], W, H, true, 0.55)}" fill="#8a7d5e" opacity="0.18"/>`;
+  html += `<path d="${buildPath(decline, [params.mid, params.steep], W, H, false, 0.55)}" fill="none" stroke="#8a7d5e" stroke-width="1.5" stroke-dasharray="4 5" opacity="0.65"/>`;
+
+  // New paradigm fill + stroke
+  html += `<path d="${buildPath(sCurve, [params.mid, params.steep], W, H, true, 0.7)}" fill="${t.color}" opacity="0.26"/>`;
+  html += `<path d="${buildPath(sCurve, [params.mid, params.steep], W, H, false, 0.7)}" fill="none" stroke="${t.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  // Tipping point
+  html += `<line x1="${midX}" y1="${H}" x2="${midX}" y2="${midY}" stroke="#b85a2d" stroke-width="1" stroke-dasharray="2 4" opacity="0.6"/>`;
+  html += `<circle cx="${midX}" cy="${midY}" r="6" fill="#b85a2d"/>`;
+  html += `<text x="${midX}" y="${H - 8}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#b85a2d" letter-spacing="1.5">PUNTO DE INFLEXIÓN</text>`;
+
+  // End label for new paradigm
+  const yEnd = H - (sCurve(1, params.mid, params.steep) * H * 0.7 + H * 0.08);
+  html += `<text x="${W - 14}" y="${yEnd - 10}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="11" fill="${t.color}" letter-spacing="1.5" font-weight="500">${t.toShort.toUpperCase()}</text>`;
+
+  // Start label for old paradigm
+  const yStart = H - (decline(0, params.mid, params.steep) * H * 0.55 + H * 0.08);
+  html += `<text x="14" y="${yStart - 10}" font-family="JetBrains Mono, monospace" font-size="11" fill="#8a7d5e" letter-spacing="1.5">${t.fromShort.toUpperCase()}</text>`;
+
+  html += `</svg>`;
+  return html;
+}
+
+function openDetail(t) {
+  document.documentElement.style.setProperty('--c-focus', t.color);
+
+  detailCard.innerHTML = `
+    <button class="detail-close" id="close-btn" aria-label="Cerrar">✕</button>
+    <div class="detail-eyebrow">${t.tag}</div>
+    <h2 class="detail-title">${t.name.split(' ').map((w, idx, arr) =>
+      idx === arr.length - 1 ? `<em>${w}</em>` : w
+    ).join(' ')}</h2>
+    <p class="detail-lede">${t.lede}</p>
+
+    <div class="detail-curve">${renderBigCurve(t)}</div>
+    <div class="detail-curve-labels">
+      <span>← Pasado</span>
+      <span>Hoy</span>
+      <span>Futuro →</span>
+    </div>
+
+    <div style="height: 40px"></div>
+
+    <div class="states">
+      <div class="state-block old">
+        <div class="state-eyebrow">Modelo actual</div>
+        <div class="state-headline">${t.from.headline}</div>
+        <ul class="state-traits">
+          ${t.from.traits.map(tr => `<li>${tr}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="state-block new">
+        <div class="state-eyebrow">Dirección de cambio</div>
+        <div class="state-headline">${t.to.headline}</div>
+        <ul class="state-traits">
+          ${t.to.traits.map(tr => `<li>${tr}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+
+    <div class="dims-label">Dimensiones críticas <span class="heart">— gobernanza, economía, técnica</span></div>
+    <div class="dims-grid">
+      ${t.dims.map((d, i) => `
+        <div class="dim">
+          <div class="dim-num">0${i + 1} · ${d.dim}</div>
+          <div class="dim-title">${d.title}</div>
+          <div class="dim-body">${d.body}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="context-block">
+      <div class="examples-label">Contexto sectorial</div>
+      <p class="context-body">${t.context}</p>
+    </div>
+
+    <div class="examples">
+      <div class="examples-label">Cómo trabajamos en este sector</div>
+      <ul>
+        ${t.services.map(e => `
+          <li class="example-row">
+            <div class="example-mark">${e.mark}</div>
+            <div class="example-text">${e.text}</div>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  `;
+
+  detail.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('close-btn').addEventListener('click', closeDetail);
+}
+
+function closeDetail() {
+  detail.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+detail.addEventListener('click', (e) => {
+  if (e.target === detail) closeDetail();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && detail.classList.contains('open')) closeDetail();
+});
+</script>
+</body>
+</html>
